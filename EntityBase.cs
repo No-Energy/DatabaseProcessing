@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
 
 namespace DatabaseProcessing
 {
@@ -22,6 +18,14 @@ namespace DatabaseProcessing
         /// 数据存储源
         /// </summary>
         private Dictionary<string, object> data = new Dictionary<string, object>();
+
+        /// <summary>
+        /// 数据实例
+        /// </summary>
+        public EntityBase()
+        {
+            source = "";
+        }
 
         /// <summary>
         /// 数据实例

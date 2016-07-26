@@ -33,7 +33,16 @@ namespace DatabaseProcessing
                 if (key.Trim().Length == 0) { throw new Exception("字段名不可为空!"); }
                 if (whereObjectType == WhereObjectType.包括 || whereObjectType == WhereObjectType.不包括) { throw new Exception("条件类型与值不匹配!"); }
 
-                condition = string.Format("{0} {1} '{2}'", key, GetType(whereObjectType), value);
+                string type = GetType(whereObjectType);
+                if (type.Equals(string.Empty))//对应表达式情况
+                {
+                    condition = string.Format("{0} {1}", key, value);
+                }
+                else
+                {
+                    condition = string.Format("{0} {1} '{2}'", key,type, value);
+                }
+                
             }
             catch (Exception ex)
             {
@@ -92,7 +101,7 @@ namespace DatabaseProcessing
                 case WhereObjectType.小于:
                     return "<";
                 default :
-                    return "";
+                    return string.Empty;
             }
         }
     }

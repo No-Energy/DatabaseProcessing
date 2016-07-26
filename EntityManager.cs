@@ -13,97 +13,38 @@ namespace DatabaseProcessing
     public class EntityManager
     {
 
-        string SQLConnStr;
-        /// <summary>
-        /// 数据源
-        /// </summary>
-        string DataSource;
-        /// <summary>
-        /// 数据库
-        /// </summary>
-        string Database;
-        /// <summary>
-        /// 用户名
-        /// </summary>
-        string Uid;
-        /// <summary>
-        /// 密码
-        /// </summary>
-        string Pwd;
+        //string SQLConnStr;
+        ///// <summary>
+        ///// 数据源
+        ///// </summary>
+        //string DataSource;
+        ///// <summary>
+        ///// 数据库
+        ///// </summary>
+        //string Database;
+        ///// <summary>
+        ///// 用户名
+        ///// </summary>
+        //string Uid;
+        ///// <summary>
+        ///// 密码
+        ///// </summary>
+        //string Pwd;
 
         public EntityManager()
         {
             try
             {
-                ReadLogInMsg();
-                SQLConnStr = string.Format("Data Source={0};Database={1};Uid={2};Pwd={3}", DataSource, Database, Uid, Pwd);
+                //ReadLogInMsg();
+                //SQLConnStr = string.Format("Data Source={0};Database={1};Uid={2};Pwd={3}", DataSource, Database, Uid, Pwd);
             }
-            catch(Exception ex)
+            catch
             {
-                throw ex;
+                throw;
             }
         }
 
-        /// <summary>
-        /// 获取配置
-        /// </summary>
-        public void ReadLogInMsg()
-        {
-            try
-            {
-                string path = System.AppDomain.CurrentDomain.SetupInformation.ApplicationBase;
-
-                XmlDocument doc = new XmlDocument();
-                doc.Load(path + "config.config");
-
-                XmlNodeList Node = doc.SelectSingleNode("config").ChildNodes;
-
-                for (int n = 0; n < Node.Count; n++)
-                {
-                    XmlNodeList cNode = Node.Item(n).ChildNodes;
-                    int nodeNum = cNode.Count;
-
-                    if (Node.Item(n).Name.Equals("Database"))
-                    {
-                        for (int i = 0; i < nodeNum; i++)
-                        {
-                            try
-                            {
-                                if (cNode[i].Name.Equals("DataSource")) { DataSource = cNode[i].InnerXml; }
-                                if (cNode[i].Name.Equals("Database")) { Database = cNode[i].InnerXml; }
-                            }
-                            catch
-                            {
-                                throw new Exception("数据库信息配置数值错误！");
-                            }
-                        }
-                    }
-
-                    if (Node.Item(n).Name.Equals("LogIn"))
-                    {
-                        for (int i = 0; i < nodeNum; i++)
-                        {
-                            try
-                            {
-                                if (cNode[i].Name.Equals("Uid")) { Uid = cNode[i].InnerXml; }
-                                if (cNode[i].Name.Equals("Pwd")) { Pwd = cNode[i].InnerXml; }
-                            }
-                            catch
-                            {
-                                throw new Exception("登录信息配置数值错误！");
-                            }
-                        } 
-                    }
-                }
-                if (string.IsNullOrEmpty(DataSource) || string.IsNullOrEmpty(Database) || string.IsNullOrEmpty(Uid) || string.IsNullOrEmpty(Pwd)) { throw new Exception("配置信息不完整!"); }
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-        }
-
-        /// <summary>
+        /// <summary>'
         /// 获取成员列表
         /// </summary>
         /// <param name="tableName">表名</param>
@@ -112,10 +53,10 @@ namespace DatabaseProcessing
         {
             try
             {
-                SqlConnection conn = new SqlConnection(SQLConnStr);
+                SqlConnection conn = ConnectInfo.GetConnection();
                 conn.Open();
                 //通过数据库查询语句限制仅仅获取列名
-                SqlCommand cmd = new SqlCommand(string.Format("select * from [{0}] where 1=0", tableName), conn);
+                SqlCommand cmd = new SqlCommand(string.Format("select * from {0} where 1=0", tableName), conn);
                 //SqlDataReader dr = cmd.ExecuteReader();
                 SqlDataAdapter da = new SqlDataAdapter(cmd);
                 DataTable dt = new DataTable();
@@ -150,7 +91,7 @@ namespace DatabaseProcessing
         {
             try
             {
-                SqlConnection conn = new SqlConnection(SQLConnStr);
+                SqlConnection conn = ConnectInfo.GetConnection();
                 conn.Open();
                 //通过数据库查询语句限制仅仅获取列名
                 SqlCommand cmd = new SqlCommand(string.Format("SELECT COLUMN_NAME,IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS col inner join sysobjects tbs ON tbs.name=col.TABLE_NAME WHERE tbs.name='{0}'", tableName), conn);
@@ -191,7 +132,7 @@ namespace DatabaseProcessing
         {
             try
             {
-                SqlConnection conn = new SqlConnection(SQLConnStr);
+                SqlConnection conn = ConnectInfo.GetConnection();
                 conn.Open();
                 //通过数据库查询语句限制仅仅获取列名
                 SqlCommand cmd = new SqlCommand(string.Format("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_NAME='{0}'", tableName), conn);
@@ -232,10 +173,10 @@ namespace DatabaseProcessing
             try
             {
                 string topStr = dataNum == 0 ? "" : string.Format("TOP{0}", dataNum);
-                string sqlQueryStr = string.Format("select {0} * from [{1}]", topStr, entity.source);
+                string sqlQueryStr = string.Format("select {0} * from {1}", topStr, entity.source);
                 if (orderColumn.Trim().Length > 0) { sqlQueryStr += string.Format(" order by {0}", orderColumn); }
 
-                SqlConnection conn = new SqlConnection(SQLConnStr);
+                SqlConnection conn = ConnectInfo.GetConnection();
                 conn.Open();
                 SqlCommand cmd = new SqlCommand(sqlQueryStr, conn);
                 SqlDataAdapter da = new SqlDataAdapter(cmd);
@@ -249,9 +190,9 @@ namespace DatabaseProcessing
 
                 return dt;
             }
-            catch (Exception ex)
+            catch
             {
-                throw ex;
+                throw;
             }
         }
 
@@ -268,10 +209,10 @@ namespace DatabaseProcessing
             try
             {
                 string topStr = dataNum == 0 ? "" : string.Format("TOP{0}", dataNum);
-                string sqlQueryStr = string.Format("select {0} * from [{1}] {2}", topStr, entity.source, whereObjectList.where);
+                string sqlQueryStr = string.Format("select {0} * from {1} {2}", topStr, entity.source, whereObjectList.where);
                 if (orderColumn.Trim().Length > 0) { sqlQueryStr += string.Format(" order by {0}", orderColumn); }
 
-                SqlConnection conn = new SqlConnection(SQLConnStr);
+                SqlConnection conn = ConnectInfo.GetConnection();
                 conn.Open();
                 SqlCommand cmd = new SqlCommand(sqlQueryStr, conn);
                 SqlDataAdapter da = new SqlDataAdapter(cmd);
@@ -285,9 +226,9 @@ namespace DatabaseProcessing
 
                 return dt;
             }
-            catch (Exception ex)
+            catch
             {
-                throw ex;
+                throw;
             }
         }
 
@@ -306,10 +247,10 @@ namespace DatabaseProcessing
                 if (totalObjectList.GetGroup().Length == 0) { throw new Exception("没有包含 GROUP BY 子句!"); }
 
                 string topStr = dataNum == 0 ? "" : string.Format("TOP{0}", dataNum);
-                string sqlQueryStr = string.Format("select {0} {1} from [{1}] group by {2}", topStr, totalObjectList.GetTotal(), entity.source, totalObjectList.GetGroup());
+                string sqlQueryStr = string.Format("select {0} {1} from {1} group by {2}", topStr, totalObjectList.GetTotal(), entity.source, totalObjectList.GetGroup());
                 if (orderColumn.Trim().Length > 0) { sqlQueryStr += string.Format(" order by {0}", orderColumn); }
 
-                SqlConnection conn = new SqlConnection(SQLConnStr);
+                SqlConnection conn = ConnectInfo.GetConnection();
                 conn.Open();
                 SqlCommand cmd = new SqlCommand(sqlQueryStr, conn);
                 SqlDataAdapter da = new SqlDataAdapter(cmd);
@@ -323,9 +264,9 @@ namespace DatabaseProcessing
 
                 return dt;
             }
-            catch (Exception ex)
+            catch
             {
-                throw ex;
+                throw;
             }
         }
 
@@ -345,10 +286,10 @@ namespace DatabaseProcessing
                 if (totalObjectList.GetGroup().Length == 0) { throw new Exception("没有包含 GROUP BY 子句!"); }
 
                 string topStr = dataNum == 0 ? "" : string.Format("TOP{0}", dataNum);
-                string sqlQueryStr = string.Format("select {0} {1} from [{2}] {3} group by {4}", topStr, totalObjectList.GetTotal(), entity.source, whereObjectList.where, totalObjectList.GetGroup());
+                string sqlQueryStr = string.Format("select {0} {1} from {2} {3} group by {4}", topStr, totalObjectList.GetTotal(), entity.source, whereObjectList.where, totalObjectList.GetGroup());
                 if (orderColumn.Trim().Length > 0) { sqlQueryStr += string.Format(" order by {0}", orderColumn); }
 
-                SqlConnection conn = new SqlConnection(SQLConnStr);
+                SqlConnection conn = ConnectInfo.GetConnection();
                 conn.Open();
                 SqlCommand cmd = new SqlCommand(sqlQueryStr, conn);
                 SqlDataAdapter da = new SqlDataAdapter(cmd);
@@ -377,7 +318,7 @@ namespace DatabaseProcessing
         {
             try
             {
-                string sqlQueryStr = string.Format("select * from [{0}]", entityBase.source);
+                string sqlQueryStr = string.Format("select * from {0}", entityBase.source);
 
                 List<string> primarykeymember = GetPrimaryKeyList(entityBase.source);
                 
@@ -393,7 +334,7 @@ namespace DatabaseProcessing
                 }
                 sqlQueryStr += where;
 
-                SqlConnection conn = new SqlConnection(SQLConnStr);
+                SqlConnection conn = ConnectInfo.GetConnection();
                 conn.Open();
                 SqlCommand cmd = new SqlCommand(sqlQueryStr, conn);
                 SqlDataReader dr = cmd.ExecuteReader();
@@ -437,11 +378,11 @@ namespace DatabaseProcessing
         {
             try
             {
-                string sqlQueryStr = string.Format("select * from [{0}] {1}", entityBase.source, whereObjectList.where);
+                string sqlQueryStr = string.Format("select * from {0} {1}", entityBase.source, whereObjectList.where);
 
                 if (orderColumn.Trim().Length > 0) { sqlQueryStr += string.Format(" order by {0}", orderColumn); }
 
-                SqlConnection conn = new SqlConnection(SQLConnStr);
+                SqlConnection conn = ConnectInfo.GetConnection();
                 conn.Open();
                 SqlCommand cmd = new SqlCommand(sqlQueryStr, conn);
                 SqlDataReader dr = cmd.ExecuteReader();
@@ -488,11 +429,11 @@ namespace DatabaseProcessing
             {
                 if (totalObjectList.GetGroup().Length == 0) { throw new Exception("没有包含 GROUP BY 子句!"); }
 
-                string sqlQueryStr = string.Format("select {0} from [{1}] {2} group by {3}", totalObjectList.GetTotal(), entityBase.source, whereObjectList.where, totalObjectList.GetGroup());
+                string sqlQueryStr = string.Format("select {0} from {1} {2} group by {3}", totalObjectList.GetTotal(), entityBase.source, whereObjectList.where, totalObjectList.GetGroup());
 
                 if (orderColumn.Trim().Length > 0) { sqlQueryStr += string.Format(" order by {0}", orderColumn); }
 
-                SqlConnection conn = new SqlConnection(SQLConnStr);
+                SqlConnection conn = ConnectInfo.GetConnection();
                 conn.Open();
                 SqlCommand cmd = new SqlCommand(sqlQueryStr, conn);
                 SqlDataReader dr = cmd.ExecuteReader();
@@ -538,7 +479,7 @@ namespace DatabaseProcessing
         {
             try
             {
-                string sqlQueryStr = string.Format("delete from [{0}]", entityBase.source);
+                string sqlQueryStr = string.Format("delete from {0}", entityBase.source);
 
                 List<string> primarykeymember = GetPrimaryKeyList(entityBase.source);
 
@@ -554,7 +495,7 @@ namespace DatabaseProcessing
                 }
                 sqlQueryStr += where;
 
-                SqlConnection conn = new SqlConnection(SQLConnStr);
+                SqlConnection conn = ConnectInfo.GetConnection();
                 conn.Open();
                 SqlCommand cmd = new SqlCommand(sqlQueryStr, conn);
                 SqlDataReader dr = cmd.ExecuteReader();
@@ -577,9 +518,9 @@ namespace DatabaseProcessing
         {
             try
             {
-                string sqlQueryStr = string.Format("delete from [{0}] {1}", entityBase.source, whereObjectList.where);
+                string sqlQueryStr = string.Format("delete from {0} {1}", entityBase.source, whereObjectList.where);
 
-                SqlConnection conn = new SqlConnection(SQLConnStr);
+                SqlConnection conn = ConnectInfo.GetConnection();
                 conn.Open();
                 SqlCommand cmd = new SqlCommand(sqlQueryStr, conn);
                 SqlDataReader dr = cmd.ExecuteReader();
@@ -626,14 +567,14 @@ namespace DatabaseProcessing
                 values = string.Format("({0})", string.Join(",", valuelist.ToArray()));
 
                 sqlQueryStr = string.Format("{0}{1} values{2}", sqlQueryStr, cols, values);
-                
-                SqlConnection conn = new SqlConnection(SQLConnStr);
+
+                SqlConnection conn = ConnectInfo.GetConnection();
                 conn.Open();
                 SqlCommand cmd = new SqlCommand(sqlQueryStr, conn);
                 SqlDataReader dr = cmd.ExecuteReader();
 
                 conn.Close();
-                conn.Dispose();
+                conn.Dispose();                                         
             }
             catch (Exception ex)
             {
@@ -649,7 +590,7 @@ namespace DatabaseProcessing
         {
             try
             {
-                string sqlQueryStr = string.Format("update [{0}]", entityBase.source);
+                string sqlQueryStr = string.Format("update {0}", entityBase.source);
 
                 List<string> primarykeymember = GetPrimaryKeyList(entityBase.source);
                 List<string> keylist = entityBase.GetKeys();
@@ -684,7 +625,7 @@ namespace DatabaseProcessing
 
                 sqlQueryStr += updatestr + where;
 
-                SqlConnection conn = new SqlConnection(SQLConnStr);
+                SqlConnection conn = ConnectInfo.GetConnection();
                 conn.Open();
                 SqlCommand cmd = new SqlCommand(sqlQueryStr, conn);
                 SqlDataReader dr = cmd.ExecuteReader();
@@ -707,7 +648,7 @@ namespace DatabaseProcessing
         {
             try
             {
-                string sqlQueryStr = string.Format("update [{0}]", entityBase.source);
+                string sqlQueryStr = string.Format("update {0}", entityBase.source);
 
                 List<string> keylist = entityBase.GetKeys();
 
@@ -728,7 +669,7 @@ namespace DatabaseProcessing
 
                 sqlQueryStr += updatestr + whereObjectList .where;
 
-                SqlConnection conn = new SqlConnection(SQLConnStr);
+                SqlConnection conn = ConnectInfo.GetConnection();
                 conn.Open();
                 SqlCommand cmd = new SqlCommand(sqlQueryStr, conn);
                 SqlDataReader dr = cmd.ExecuteReader();

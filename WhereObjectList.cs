@@ -99,7 +99,7 @@ namespace DatabaseProcessing
         /// 增加多个where条件OR
         /// </summary>
         /// <param name="listWhereObject">where条件List集合</param>
-        public void addMoreOr(List<WhereObject> listWhereObject)
+        public void addOr(List<WhereObject> listWhereObject)
         {
             try
             {
